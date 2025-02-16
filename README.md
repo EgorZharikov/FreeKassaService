@@ -14,7 +14,7 @@ class FreekassaControler extends Controller
 
     public function handlePayment(Request $request, FreeKassaService $freekassa)
     {
-        //обработчик оплаты
+        //Обработка ответа от FreeKassa
         $freekassa->handler($request);
     }
 }

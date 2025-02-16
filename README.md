@@ -1,6 +1,6 @@
-# Сервис для работы с платежной системы FreeKassa через API в laravel
+## Сервис для работы с платежной системы FreeKassa через API в laravel
 ### Установка
-*Создать новый сервис-провайдер для класса FreeKassaService
+* Создать новый сервис-провайдер для класса FreeKassaService
 ### Пример использования
 ```php
 class FreekassaControler extends Controller

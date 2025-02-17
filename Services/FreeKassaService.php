@@ -56,6 +56,7 @@ class FreeKassaApiService
         response()->json($order, 200);
     }
 
+    // создаем заказ на FreeKassa, возвращаем ссылку на оплату
     private function createOrder(Request $request): array
     {
         $data = $request->validate([
@@ -71,6 +72,17 @@ class FreeKassaApiService
         $data['currency'] = $this->currency; // Валюта оплаты
         $data['signature'] = $this->sign($data); //Подпись запроса
         return $this->sendCurl($data, 'orders/create');
+    }
+
+
+    public function getOrder(Request $request): array
+    {
+        $data['shopId'] = $this->merchant; // ID магазина
+        $data['nonce'] = time(); // Уникальный ID запроса
+        $data['paymentId'] = $request['MERCHANT_ORDER_ID']; // Номер заказа в нашем магазине
+        
+        $data['signature'] = $this->sign($data); // Подпись запроса
+        return $this->sendCurl($data, 'orders');
     }
 
     private function getRealIpAddr(): string
@@ -113,13 +125,30 @@ class FreeKassaApiService
         }
     }
 
+    //Примерная логика подтверждения заказа
     private function paidOrder(Request $request)
     {
-        $order = Order::where('id', $request['MERCHANT_ORDER_ID'])->first();
-        $order->status = 1;
-        $order->save();
+        $orderFK = $this->getOrder($request); // Получем заказ с fk
+        $order = Order::where('id', $request['MERCHANT_ORDER_ID'])->first(); // заказ из нашей бд
 
-        return 'YES';
+        // проверяем сумму и статус оплаты заказа
+        if($orderFK['status'] === 1 && $order['amount'] === $request['AMOUNT']) {
+            $wallet = Wallet::where('user_id', $order['user_id'])->first();
+            try {
+                DB::beginTransaction();
+
+                $order->status = 1;
+                $order->save();
+
+                $wallet->balance += $order['amount'];
+
+                DB::commit();
+
+                return 'YES';
+            } catch (\Exception $exception) {
+                DB::rollBack();
+            }
+        }
     }
 
     public function handler(Request $request)

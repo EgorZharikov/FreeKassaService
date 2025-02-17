@@ -6,11 +6,20 @@ use App\Http\Request;
 
 class FreeKassaApiService
 {
-    private string $url = config('freekassa.api_url');
-    private string $api_key = config('freekassa.api_key');
-    private string $merchant_id = config('freekassa.merchant_id');
-    private string $currency = config('freekassa.currency');
-    private string $secret = config('freekassa.freekassa.secret_key');
+    private string $url;
+    private string $api_key;
+    private string $merchant_id;
+    private string $currency;
+    private string $secret;
+
+    function __construct()
+    {
+        $this->url = config('freekassa.api_url');
+        $this->api_key = config('freekassa.api_key');
+        $this->merchant_id = config('freekassa.merchant_id');
+        $this->currency = config('freekassa.currency');
+        $this->secret = config('freekassa.freekassa.secret_key');
+    }
 
     /**
      * @param $data
